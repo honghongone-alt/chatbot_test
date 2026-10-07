@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import re
 import sqlite3
 from pathlib import Path
@@ -123,7 +124,18 @@ def resolve_evidence(payload: dict) -> GroundedAnswer:
 
 
 def read_api_key() -> str:
-    # .env 내용은 화면이나 로그에 출력하지 않습니다. BOM이 있는 파일도 읽습니다.
+    # 배포 환경변수, Streamlit Cloud Secrets, 로컬 .env 순서로 읽습니다.
+    # 키의 실제 값은 화면이나 로그에 출력하지 않습니다.
+    environment_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if environment_key:
+        return environment_key
+    try:
+        secret_key = str(st.secrets.get("OPENAI_API_KEY", "")).strip()
+    except (FileNotFoundError, RuntimeError):
+        # 로컬에 secrets.toml이 없어도 .env 방식으로 실행할 수 있습니다.
+        secret_key = ""
+    if secret_key:
+        return secret_key
     values = dotenv_values(ROOT / ".env", encoding="utf-8-sig")
     return (values.get("OPENAI_API_KEY") or "").strip()
 
@@ -366,7 +378,7 @@ def display_answer(message: dict) -> None:
 def show_error(exc: Exception) -> None:
     # 예외 원문에 민감한 정보가 들어갈 수 있어 안전한 안내만 표시합니다.
     if isinstance(exc, AuthenticationError):
-        st.error("OpenAI 인증에 실패했습니다. .env의 OPENAI_API_KEY를 확인해 주세요.")
+        st.error("OpenAI 인증에 실패했습니다. 로컬 .env 또는 Streamlit Cloud Secrets의 OPENAI_API_KEY를 확인해 주세요.")
     elif isinstance(exc, RateLimitError):
         st.error("OpenAI 사용 한도 또는 잔액을 확인한 뒤 다시 시도해 주세요.")
     elif isinstance(exc, (APIConnectionError, APITimeoutError)):
@@ -403,7 +415,7 @@ def main() -> None:
 
     api_key = read_api_key()
     if not api_key:
-        st.warning("프로젝트의 .env 파일에 OPENAI_API_KEY를 입력하고 저장한 뒤 새로고침해 주세요.")
+        st.warning("로컬 .env 또는 Streamlit Cloud의 App settings → Secrets에 OPENAI_API_KEY를 설정한 뒤 새로고침해 주세요.")
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 if message["role"] == "user":

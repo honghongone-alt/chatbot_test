@@ -27,6 +27,25 @@ load_dotenv()
 
 OpenAI 모델 객체는 API 키를 설정한 후 생성하세요.
 
+## Streamlit Community Cloud 배포
+
+이 저장소의 `uv.lock`은 Streamlit Community Cloud가 uv 의존성 파일로 인식합니다. 배포 화면에서 다음 값을 선택하세요.
+
+- Repository: `honghongone-alt/chatbot_test`
+- Branch: `main`
+- Main file path: `app.py`
+- Python version: `3.11`
+
+API 키는 GitHub 파일이나 배포 코드에 입력하지 않습니다. 배포 화면의 **Advanced settings → Secrets** 또는 배포 후 **App settings → Secrets**에 다음 TOML을 입력합니다.
+
+```toml
+OPENAI_API_KEY = "sk-실제_API_키"
+```
+
+저장 후 앱을 재부팅하거나 다시 실행하세요. 앱은 배포 환경변수, Streamlit Secrets, 로컬 `.env` 순서로 API 키를 읽습니다. 로컬에서 `.streamlit/secrets.toml`을 사용할 수도 있지만 이 파일은 `.gitignore`에 포함되어 있으므로 커밋하지 마세요.
+
+Community Cloud의 로컬 파일 저장소는 영구 저장을 보장하지 않습니다. 따라서 `.chatbot/history.sqlite3`의 대화 기록과 검증 보고서는 앱 재부팅·재배포 후 사라질 수 있습니다. 영구 대화 저장이 필요하면 외부 데이터베이스를 연결해야 합니다.
+
 ## Streamlit 실행
 
 프로젝트 최상단의 `run.bat`을 더블클릭하면 챗봇이 실행되고 브라우저가 열립니다. 이미 실행 중이면 기존 화면을 엽니다. 실행 창은 사용 중에 열어 두고, 종료하려면 창에서 `Ctrl+C`를 누르세요. uv가 설치되어 있어야 합니다.

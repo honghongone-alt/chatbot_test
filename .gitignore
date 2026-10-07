@@ -14,5 +14,9 @@ wheels/
 .env.*
 !.env.example
 
+# Streamlit secrets (never commit API keys)
+.streamlit/secrets.toml
+.streamlit/secrets.toml.*
+
 # Saved local chat history
 .chatbot/

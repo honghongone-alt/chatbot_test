@@ -39,6 +39,11 @@ def check(condition, message):
 
 
 def local_checks():
+    # 배포 환경변수와 Streamlit Cloud Secrets를 우선순위대로 읽습니다.
+    with patch.object(app.os, "getenv", return_value="environment-key"):
+        check(app.read_api_key() == "environment-key", "Environment API key not read")
+    with patch.object(app.os, "getenv", return_value=""), patch.object(app.st, "secrets", {"OPENAI_API_KEY": "cloud-secret-key"}):
+        check(app.read_api_key() == "cloud-secret-key", "Streamlit Secret API key not read")
     # 허위 출처, 변형된 인용, 근거가 없는 답변을 차단하는지 검사합니다.
     doc = Document(page_content="국내 출장의 일비는 문서에 정해진 기준에 따라 지급합니다.", metadata={"source": "test.pdf", "page": 1})
     good = app.GroundedAnswer(supported=True, claims=[app.Claim(
